@@ -4,13 +4,24 @@ import { Pool } from "pg";
 import { assertNoteEncryptionKey, encryptNote } from "./noteCrypto.js";
 
 if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL must be set to connect to Neon");
+  throw new Error("DATABASE_URL must be set to connect to PostgreSQL");
 }
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const ca = process.env.AIVEN_CA_CERT?.replace(/\\n/g, "\n").trim();
+if (!ca) {
+  throw new Error("AIVEN_CA_CERT must contain the Aiven CA certificate");
+}
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    ca,
+    rejectUnauthorized: true,
+  },
+});
 
 pool.on("error", (error) => {
-  console.error("Unexpected Neon database error:", error.message);
+  console.error("Unexpected PostgreSQL database error:", error.message);
 });
 
 export function query(text, values) {
