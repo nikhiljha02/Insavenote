@@ -1,27 +1,28 @@
 {
-    "name": "notes-master",
-    "version": "1.0.0",
-    "description": "",
-    "main": "script.js",
-    "scripts": {
-        "test": "node --watch server.js"
-    },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "type": "module",
-    "dependencies": {
-        "bcrypt": "^6.0.0",
-        "connect-pg-simple": "^10.0.0",
-        "cookie-parser": "^1.4.7",
-        "cors": "^2.8.6",
-        "dotenv": "^18.0.4",
-        "express": "^5.2.1",
-        "express-rate-limit": "^8.7.1",
-        "express-session": "^1.19.0",
-        "google-auth-library": "^11.3.1",
-        "helmet": "^8.3.0",
-        "pg": "^8.23.1",
-        "zod": "^4.6.5"
-    }
+  "name": "notes-master",
+  "version": "1.0.0",
+  "description": "",
+  "main": "script.js",
+  "scripts": {
+    "test": "node --watch server.js",
+    "start": "node --watch server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "connect-pg-simple": "^10.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.4",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.1",
+    "express-session": "^1.19.0",
+    "google-auth-library": "^11.3.1",
+    "helmet": "^8.3.0",
+    "pg": "^8.23.1",
+    "zod": "^4.6.5"
+  }
 }
