@@ -1,0 +1,47 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap");
+
+/* =========================================================
+   TOKENS
+========================================================= */
+:root {
+    --desk: #1b1a18;
+    --desk-raised: #24221f;
+    --line: #34312c;
+    --text: #ece7dd;
+    --muted: #9b958a;
+    --ink: #2a2723;
+    --accent: #f3d77a;
+    --danger: #e0614f;
+
+    /* paper tints for notes */
+    --paper-1: #f3e3a6;
+    --paper-2: #cfdcbf;
+    --paper-3: #efcdc3;
+    --paper-4: #c9dbe6;
+    --paper-5: #d9cfe8;
+    --paper-6: #f3d3ab;
+    --paper-7: #bfe0d5;
+    --paper-8: #e7c5d5;
+    --paper-9: #c9c8e8;
+    --paper-10: #d8dfaa;
+
+    --ui: "DM Sans", system-ui, sans-serif;
+    --write: "Lora", Georgia, serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    background: var(--desk);
+    color: var(--text);
+    font-family: var(--ui);
+}

@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css"
+      integrity="sha512-PgQMlq+nqFLV4ylk1gwUOgm6CtIIXkKwaIHp/PAIWHzig/lKZSEGKEysh0TCVbHJXCLN7WetD8TFecIky75ZfQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <title>Written Notes</title>
+
+    <link rel="stylesheet" href="./index.css" />
+
+    <link
+      rel="shortcut icon"
+      href="https://written-notes.netlify.app/download-removebg-preview.png"
+      type="image/x-icon"
+    />
+  </head>
+
+  <body>
+    <!-- TOP MESSAGE POPUP -->
+    <div class="message-popup hidden" id="messagePopup">
+      <p id="popupMessage"></p>
+      <button id="closePopup" aria-label="Close message">&times;</button>
+    </div>
+
+    <!-- =========================
+             HEADER
+        ========================== -->
+
+    <div class="heading">
+      <h1>
+        <i class="fas fa-sticky-note"></i>
+        Written Notes
+      </h1>
+
+      <div class="auth-buttons auth-loading">
+        <div class="authBtn">
+          <button class="login-btn" id="login" type="button">Login</button>
+
+          <button class="signup-btn" id="signup" type="button">Sign Up</button>
+        </div>
+
+        
+
+        <button class="logout-btn" id="logout" type="button">Log out</button>
+      </div>
+    </div>
+
+    <!-- =========================
+             ADD NOTE BUTTON
+        ========================== -->
+
+    <div class="btn-div">
+      <button class="learn-more add" id="add" type="button">
+        <span class="circle" aria-hidden="true">
+          <span class="icon arrow"></span>
+        </span>
+
+        <span class="button-text"> Add note </span>
+      </button>
+    </div>
+
+    <!-- =========================
+             NOTES
+        ========================== -->
+
+    <main class="notes-container" id="notesContainer"></main>
+
+    <!-- =========================
+             AUTH POPUP
+        ========================== -->
+
+    <div class="auth-overlay" id="authOverlay">
+      <div class="auth-popup">
+        <button class="close-auth" id="closeAuth" type="button">&times;</button>
+
+        <!-- =========================
+                     LOGIN
+                ========================== -->
+
+        <div class="auth-form" id="loginForm">
+          <h2>Welcome Back</h2>
+
+          <p>Login to your Written Notes account</p>
+
+          <form>
+            <div class="input-group">
+              <label for="loginEmail"> Email </label>
+
+              <input
+                type="email"
+                id="loginEmail"
+                placeholder="Enter your email"
+                autocomplete="username"
+                required
+              />
+            </div>
+
+            <div class="input-group">
+              <label for="loginPassword"> Password </label>
+
+              <input
+                type="password"
+                id="loginPassword"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                required
+              />
+            </div>
+
+            <button type="submit" class="auth-submit">Login</button>
+          </form>
+
+          <p class="auth-switch">
+            Don't have an account?
+
+            <span id="showSignup"> Sign Up </span>
+          </p>
+        </div>
+
+        <!-- =========================
+                     SIGNUP
+                ========================== -->
+
+        <div class="auth-form hidden" id="signupForm">
+          <h2>Create Account</h2>
+
+          <p>Create your Written Notes account</p>
+
+          <form>
+            <div class="name-row">
+              <div class="input-group">
+                <label for="firstName"> First Name </label>
+
+                <input
+                  type="text"
+                  id="firstName"
+                  placeholder="First name"
+                  required
+                />
+              </div>
+
+              <div class="input-group">
+                <label for="lastName"> Last Name </label>
+
+                <input
+                  type="text"
+                  id="lastName"
+                  placeholder="Last name"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="signupEmail"> Email </label>
+
+              <input
+                type="email"
+                id="signupEmail"
+                placeholder="Enter your email"
+                autocomplete="username"
+                required
+              />
+            </div>
+
+            <div class="input-group">
+              <label for="signupPassword"> Password </label>
+
+              <input
+                type="password"
+                id="signupPassword"
+                placeholder="Create a password"
+                autocomplete="new-password"
+                required
+              />
+            </div>
+
+            <button type="submit" class="auth-submit">Sign Up</button>
+          </form>
+
+          <p class="auth-switch">
+            Already have an account?
+
+            <span id="showLogin"> Login </span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================
+             SCRIPTS
+        ========================== -->
+
+    <script src="https://cdn.jsdelivr.net/combine/npm/jquery@3.5.0/dist/jquery.min.js"></script>
+
+    <script src="script.js"></script>
+  </body>
+</html>
