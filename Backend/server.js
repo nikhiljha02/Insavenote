@@ -28,10 +28,10 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use(
-    cors({
-        origin: "http://localhost:5173",
-        credentials: true,
-    }),
+  cors({
+    origin: process.env.FRONTEND_LIVE_URL || "http://localhost:5173",
+    credentials: true,
+  }),
 );
 
 app.disable("x-powered-by");
@@ -50,47 +50,47 @@ app.disable("x-powered-by");
 
 // Session middleware
 app.use(
-    session({
-        name: "connect.sid",
-        store: new PgSessionStore({
-            pool,
-            tableName: "user_sessions",
-            createTableIfMissing: true,
-            // The cookie is fixed at seven days (rolling defaults to false), so touching
-            // the session row on every note request only adds an unnecessary DB write.
-            disableTouch: true,
-        }),
-        secret: process.env.SESSION_SECRET,
-        resave: false,
-        saveUninitialized: false,
-        cookie: {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 1000 * 60 * 60 * 24 * 7,
-        },
+  session({
+    name: "connect.sid",
+    store: new PgSessionStore({
+      pool,
+      tableName: "user_sessions",
+      createTableIfMissing: true,
+      // The cookie is fixed at seven days (rolling defaults to false), so touching
+      // the session row on every note request only adds an unnecessary DB write.
+      disableTouch: true,
     }),
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    },
+  }),
 );
 
 // Health check
 app.get("/api/health", async (req, res) => {
-    const start = Date.now();
-    try {
-        const dbStart = Date.now();
-        await query("SELECT 1");
+  const start = Date.now();
+  try {
+    const dbStart = Date.now();
+    await query("SELECT 1");
 
-        const dbTime = Date.now() - dbStart;
-        const totalTime = Date.now() - start;
-        res.json({
-            status: "success",
-            databaseTime: `${dbTime}ms`,
-            totalTime: `${totalTime}ms`,
-        });
-    } catch {
-        return res.status(500).json({
-            message: "Neon database connection failed",
-        });
-    }
+    const dbTime = Date.now() - dbStart;
+    const totalTime = Date.now() - start;
+    res.json({
+      status: "success",
+      databaseTime: `${dbTime}ms`,
+      totalTime: `${totalTime}ms`,
+    });
+  } catch {
+    return res.status(500).json({
+      message: "Neon database connection failed",
+    });
+  }
 });
 
 // API routes
@@ -102,9 +102,9 @@ export default app;
 
 // Local development
 if (process.env.VERCEL !== "1") {
-    const port = process.env.PORT || 8080;
+  const port = process.env.PORT || 8080;
 
-    app.listen(port, () => {
-        console.log(`Server running on port ${port}`);
-    });
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
 }

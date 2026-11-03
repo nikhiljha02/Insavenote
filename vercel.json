@@ -1,3 +1,13 @@
 {
-  "version": 2
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://insavenote.onrender.com/api/:path*"
+    },
+    {
+      "source": "/note/:path*",
+      "destination": "https://insavenote.onrender.com/note/:path*"
+    }
+  ]
 }
