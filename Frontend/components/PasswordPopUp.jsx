@@ -10,6 +10,7 @@ function PasswordPopUp({ mode, intent = mode, noteId, onClose, onSuccess }) {
   const [confirmation, setConfirmation] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sendingReset, setSendingReset] = useState(false);
   const [resetMessage, setResetMessage] = useState("");
   const passwordRef = useRef(null);
   const isLocking = mode === "lock";
@@ -74,6 +75,7 @@ function PasswordPopUp({ mode, intent = mode, noteId, onClose, onSuccess }) {
     setError("");
     setResetMessage("");
     setLoading(true);
+    setSendingReset(true);
 
     try {
       const response = await fetch(apiUrl("/note/forget-password"), {
@@ -97,6 +99,7 @@ function PasswordPopUp({ mode, intent = mode, noteId, onClose, onSuccess }) {
         requestError.message || "Could not reach the server. Try again.",
       );
     } finally {
+      setSendingReset(false);
       setLoading(false);
     }
   };
@@ -175,7 +178,7 @@ function PasswordPopUp({ mode, intent = mode, noteId, onClose, onSuccess }) {
               onClick={handleForgetPassword}
               disabled={loading}
             >
-              {loading
+              {sendingReset
                 ? "Sending reset link…"
                 : resetMessage
                   ? "Send another reset link"
