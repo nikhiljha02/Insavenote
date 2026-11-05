@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
+import { Route, Routes, useLocation } from "react-router-dom";
 
 import AuthBtn from "../components/AuthBtn.jsx";
 import NoteBtn from "../components/NoteBtn.jsx";
@@ -7,6 +8,8 @@ import "./App.css";
 import { useAuth } from "./context/AuthContext.jsx";
 import NotesSkeleton from "../components/NotesSkeleton.jsx";
 import { apiUrl } from "./api.js";
+import ResetNotePasswordPage from "./ResetNotePasswordPage.jsx";
+import MaintenancePage from "../components/MaintenancePage.jsx";
 
 function App() {
   const [showAuth, setShowAuth] = useState(false);
@@ -15,10 +18,18 @@ function App() {
   const [initialNotes, setInitialNotes] = useState(null);
 
   const { login } = useAuth();
+  const location = useLocation();
 
   // Restore the existing backend session.
   useEffect(() => {
     let cancelled = false;
+
+    if (window.location.pathname === "/maintenance") {
+      setLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
 
     const checkAuth = async () => {
       try {
@@ -115,7 +126,7 @@ function App() {
     }
   }
 
-  if (loading) {
+  if (loading && location.pathname !== "/maintenance") {
     return (
       <main style={{ padding: 40 }}>
         <NotesSkeleton />
@@ -123,63 +134,78 @@ function App() {
     );
   }
 
+  if (
+    import.meta.env.VITE_MAINTENANCE_MODE === "true" &&
+    location.pathname !== "/maintenance"
+  ) {
+    return <MaintenancePage />;
+  }
+
   return (
-    <>
-      <div className="heading">
-        <h1 className="brand-heading">
-          <img
-            className="app-logo"
-            src="/assets/insavenote-high-resolution-logo.png"
-            alt="InSaveNote"
-          />
-        </h1>
-        <div className="userDetailAuth">
-          <AuthBtn
-            onClick={() => {
-              setShowAuth(true);
-              setError("");
-            }}
-          />
-        </div>
-      </div>
-
-      {showAuth && (
-        <div className="auth-overlay active">
-          <div className="auth-popup">
-            <button
-              className="close-auth"
-              onClick={() => {
-                setShowAuth(false);
-                setError("");
-              }}
-            >
-              &times;
-            </button>
-
-            <img
-              className="auth-popup-logo"
-              src="/assets/insavenote-high-resolution-logo.png"
-              alt="InSaveNote"
-            />
-            <h2>Sign in to your account</h2>
-            <div className="google-login">
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={() => setError("Google sign-in failed.")}
-              />
+    <Routes>
+      <Route path="/reset-note-password" element={<ResetNotePasswordPage />} />
+      <Route
+        path="*"
+        element={
+          <>
+            <div className="heading">
+              <h1 className="brand-heading">
+                <img
+                  className="app-logo"
+                  src="/assets/insavenote-high-resolution-logo.png"
+                  alt="InSaveNote"
+                />
+              </h1>
+              <div className="userDetailAuth">
+                <AuthBtn
+                  onClick={() => {
+                    setShowAuth(true);
+                    setError("");
+                  }}
+                />
+              </div>
             </div>
 
-            {error && (
-              <p role="alert" className="auth-error">
-                {error}
-              </p>
-            )}
-          </div>
-        </div>
-      )}
+            {showAuth && (
+              <div className="auth-overlay active">
+                <div className="auth-popup">
+                  <button
+                    className="close-auth"
+                    onClick={() => {
+                      setShowAuth(false);
+                      setError("");
+                    }}
+                  >
+                    &times;
+                  </button>
 
-      <NoteBtn initialNotes={initialNotes} />
-    </>
+                  <img
+                    className="auth-popup-logo"
+                    src="/assets/insavenote-high-resolution-logo.png"
+                    alt="InSaveNote"
+                  />
+                  <h2>Sign in to your account</h2>
+                  <div className="google-login">
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={() => setError("Google sign-in failed.")}
+                    />
+                  </div>
+
+                  {error && (
+                    <p role="alert" className="auth-error">
+                      {error}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <NoteBtn initialNotes={initialNotes} />
+          </>
+        }
+      />
+    </Routes>
   );
 }
 

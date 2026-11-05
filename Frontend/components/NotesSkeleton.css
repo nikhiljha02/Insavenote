@@ -4,7 +4,7 @@
 
 .skeleton-page {
   min-height: 100vh;
-  background: #181818;
+  background: #282828;
 }
 
 .skeleton-container {
@@ -14,7 +14,7 @@
 
 /* YouTube-style neutral shimmer */
 .skeleton {
-  background: #292929;
+  background: #282828;
   background-image: linear-gradient(
     90deg,
     #292929 0%,

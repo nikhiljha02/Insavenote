@@ -22,7 +22,9 @@
     "express-session": "^1.19.0",
     "google-auth-library": "^11.3.1",
     "helmet": "^8.3.0",
+    "nodemailer": "^10.3.1",
     "pg": "^8.23.1",
+    "resend": "^6.37.0",
     "zod": "^4.6.5"
   }
 }

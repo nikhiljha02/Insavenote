@@ -1,71 +1,71 @@
 /* 1. Define Global Theme Variables */
 :root {
-    --bg-color: #ffffff;
-    --text-color: #1a1a1a;
-    --btn-bg: #f0f0f0;
-    --btn-stroke: #333333;
+  --bg-color: #f9f9f9;
+  --text-color: #1a1a1a;
+  --btn-bg: #f0f0f0;
+  --btn-stroke: #333333;
 }
 
 :root.dark {
-    --bg-color: #121212;
-    --text-color: #f5f5f5;
-    --btn-bg: #222222;
-    --btn-stroke: #f5f5f5;
+  --bg-color: #282828;
+  --text-color: #f5f5f5;
+  --btn-bg: #222222;
+  --btn-stroke: #f5f5f5;
 }
 
 /* 2. Apply Application Global Styles */
 body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    transition:
-        background-color 0.3s ease,
-        color 0.3s ease;
-    font-family: sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+  font-family: sans-serif;
 }
 
 .heading {
-    background: var(--bg-color) !important;
-    color: var(--text-color);
+  background: var(--bg-color) !important;
+  color: var(--text-color);
 }
 .login-btn {
-    color: var(--text-color) !important;
+  color: var(--text-color) !important;
 }
 html.dark .my-element {
-    color: #1a1a1a !important;
+  color: #1a1a1a !important;
 }
 
 /* 3. Button Component Styling */
 .theme-toggle-btn {
-    background: var(--btn-bg);
-    border: 1px solid var(--btn-stroke);
-    padding: 10px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    transition:
-        background-color 0.3s,
-        transform 0.2s;
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-stroke);
+  padding: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  transition:
+    background-color 0.3s,
+    transform 0.2s;
 }
 
 .theme-toggle-btn:hover {
-    transform: scale(1.05);
+  transform: scale(1.05);
 }
 
 .theme-toggle-btn:active {
-    transform: scale(0.95);
+  transform: scale(0.95);
 }
 
 .icon {
-    width: 24px;
-    height: 24px;
-    color: var(--btn-stroke);
+  width: 24px;
+  height: 24px;
+  color: var(--btn-stroke);
 }
 
 .auth-popup {
-    background: var(--bg-color) !important;
-    color: var(--text-color);
+  background: var(--bg-color) !important;
+  color: var(--text-color);
 }

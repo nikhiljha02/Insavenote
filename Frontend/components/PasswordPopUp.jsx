@@ -2,11 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { apiUrl } from "../src/api.js";
 
+const passwordRegex =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s])\S{8,12}$/;
+
 function PasswordPopUp({ mode, intent = mode, noteId, onClose, onSuccess }) {
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetMessage, setResetMessage] = useState("");
   const passwordRef = useRef(null);
   const isLocking = mode === "lock";
   const isDeleting = intent === "delete";
@@ -31,6 +35,13 @@ function PasswordPopUp({ mode, intent = mode, noteId, onClose, onSuccess }) {
       passwordRef.current?.focus();
       return;
     }
+    if (isLocking && !passwordRegex.test(password)) {
+      setError(
+        "Password must be 8–12 characters with uppercase and lowercase letters, a number, and a special character. Spaces are not allowed.",
+      );
+      passwordRef.current?.focus();
+      return;
+    }
     if (isLocking && password !== confirmation) {
       setError("The passwords do not match.");
       return;
@@ -51,7 +62,40 @@ function PasswordPopUp({ mode, intent = mode, noteId, onClose, onSuccess }) {
 
       await onSuccess(data);
     } catch (requestError) {
-      setError(requestError.message || "Could not reach the server. Try again.");
+      setError(
+        requestError.message || "Could not reach the server. Try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgetPassword = async () => {
+    setError("");
+    setResetMessage("");
+    setLoading(true);
+
+    try {
+      const response = await fetch(apiUrl("/note/forget-password"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ noteId }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Could not send a password reset link.",
+        );
+      }
+      setResetMessage(
+        data.message || "A reset link has been sent to your account email.",
+      );
+    } catch (requestError) {
+      setError(
+        requestError.message || "Could not reach the server. Try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -86,11 +130,18 @@ function PasswordPopUp({ mode, intent = mode, noteId, onClose, onSuccess }) {
         </div>
         <p className="password-modal-eyebrow">PRIVATE NOTE</p>
         <h2 id="password-modal-title">
-          {isLocking ? "Lock this note" : isDeleting ? "Unlock to delete" : "Unlock your note"}
-        </h2>
-        <p className="password-modal-description" id="password-modal-description">
           {isLocking
-            ? "Choose a password to keep this note private."
+            ? "Lock this note"
+            : isDeleting
+              ? "Unlock to delete"
+              : "Unlock your note"}
+        </h2>
+        <p
+          className="password-modal-description"
+          id="password-modal-description"
+        >
+          {isLocking
+            ? "Choose an 8–12-character password with uppercase and lowercase letters, a number, and a special character."
             : isDeleting
               ? "Enter this note’s password to confirm deletion."
               : "Enter the password you used to protect this note."}
@@ -106,6 +157,9 @@ function PasswordPopUp({ mode, intent = mode, noteId, onClose, onSuccess }) {
             className="password-field"
             type="password"
             value={password}
+            minLength={isLocking ? 8 : undefined}
+            maxLength={isLocking ? 12 : undefined}
+            placeholder="`8+ chars: A-Z, a-z, 0-9, special`"
             autoComplete={isLocking ? "new-password" : "current-password"}
             onChange={(event) => {
               setPassword(event.currentTarget.value);
@@ -114,10 +168,33 @@ function PasswordPopUp({ mode, intent = mode, noteId, onClose, onSuccess }) {
             disabled={loading}
             required
           />
+          {!isLocking && !isDeleting && (
+            <button
+              className="password-forgot"
+              type="button"
+              onClick={handleForgetPassword}
+              disabled={loading}
+            >
+              {loading
+                ? "Sending reset link…"
+                : resetMessage
+                  ? "Send another reset link"
+                  : "Forgot password?"}
+            </button>
+          )}
+
+          {resetMessage && (
+            <p className="password-reset-success" role="status">
+              {resetMessage}
+            </p>
+          )}
 
           {isLocking && (
             <>
-              <label className="password-field-label" htmlFor="note-password-confirm">
+              <label
+                className="password-field-label"
+                htmlFor="note-password-confirm"
+              >
                 Confirm password
               </label>
               <input
@@ -125,6 +202,8 @@ function PasswordPopUp({ mode, intent = mode, noteId, onClose, onSuccess }) {
                 className="password-field"
                 type="password"
                 value={confirmation}
+                minLength={8}
+                maxLength={12}
                 autoComplete="new-password"
                 onChange={(event) => {
                   setConfirmation(event.currentTarget.value);
@@ -151,7 +230,11 @@ function PasswordPopUp({ mode, intent = mode, noteId, onClose, onSuccess }) {
             >
               Cancel
             </button>
-            <button className="password-modal-submit" type="submit" disabled={loading}>
+            <button
+              className="password-modal-submit"
+              type="submit"
+              disabled={loading}
+            >
               {loading
                 ? "Please wait…"
                 : isLocking

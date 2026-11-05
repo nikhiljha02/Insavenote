@@ -5,7 +5,10 @@ import PasswordPopUp from "./PasswordPopUp.jsx";
 import { apiUrl } from "../src/api.js";
 import { useAuth } from "../src/context/AuthContext.jsx";
 
-const paperColors = Array.from({ length: 10 }, (_, index) => `paper-${index + 1}`);
+const paperColors = Array.from(
+  { length: 10 },
+  (_, index) => `paper-${index + 1}`,
+);
 
 function randomPaperColor() {
   return paperColors[Math.floor(Math.random() * paperColors.length)];
@@ -15,31 +18,60 @@ function normalizePaperColor(color, fallback = "paper-1") {
   return paperColors.includes(color) ? color : fallback;
 }
 
-function normalizeNotes(allNotes) {
-  return (allNotes || []).map((item) => ({
-    clientId: String(item.noteId),
-    noteId: item.noteId,
-    note: item.note || "",
-    label: String(item.label || "General").trim() || "General",
-    color: normalizePaperColor(item.color, randomPaperColor()),
-    locked: Boolean(item.locked),
-    isDraft: false,
-  }));
-}
-
-function NoteBtn({ initialNotes = null }) {
+function NoteBtn() {
   const { user, userLogged } = useAuth();
   const userKey = user?.email || null;
-  const [noteState, setNoteState] = useState(() =>
-    initialNotes
-      ? { userKey: initialNotes.userKey, items: normalizeNotes(initialNotes.allNotes) }
-      : { userKey: null, items: [] },
-  );
+  const [noteState, setNoteState] = useState({ userKey: null, items: [] });
   const [toast, setToast] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [labelFilter, setLabelFilter] = useState("");
+  const [sortOrder, setSortOrder] = useState("newest");
   const toastId = useRef(0);
   const draftSequence = useRef(0);
-  const notes = userLogged && noteState.userKey === userKey ? noteState.items : [];
-  const loading = Boolean(userLogged && userKey && noteState.userKey !== userKey);
+  const notes =
+    userLogged && noteState.userKey === userKey ? noteState.items : [];
+  const loading = Boolean(
+    userLogged && userKey && noteState.userKey !== userKey,
+  );
+
+  const availableLabels = Array.from(
+    new Map(
+      notes.map((note) => {
+        const label = String(note.label || "General").trim() || "General";
+        return [label.toLocaleLowerCase(), label];
+      }),
+    ).values(),
+  ).sort((left, right) => left.localeCompare(right));
+
+  const normalizedSearch = searchTerm.trim().toLocaleLowerCase();
+  const visibleNotes = notes
+    .map((note, index) => ({ note, index }))
+    .filter(({ note }) => {
+      const matchesLabel =
+        !labelFilter ||
+        note.label.toLocaleLowerCase() === labelFilter.toLocaleLowerCase();
+      const matchesSearch =
+        !normalizedSearch ||
+        note.label.toLocaleLowerCase().includes(normalizedSearch) ||
+        note.note.toLocaleLowerCase().includes(normalizedSearch);
+      return matchesLabel && matchesSearch;
+    })
+    .sort((left, right) => {
+      if (sortOrder === "oldest") return right.index - left.index;
+      if (sortOrder === "label-asc" || sortOrder === "label-desc") {
+        const labelOrder = left.note.label.localeCompare(
+          right.note.label,
+          undefined,
+          { sensitivity: "base" },
+        );
+        return (
+          (sortOrder === "label-desc" ? -labelOrder : labelOrder) ||
+          left.index - right.index
+        );
+      }
+      return left.index - right.index;
+    })
+    .map(({ note }) => note);
 
   const showMessage = useCallback((message, type = "success") => {
     setToast({ id: ++toastId.current, message, type });
@@ -58,14 +90,7 @@ function NoteBtn({ initialNotes = null }) {
   );
 
   useEffect(() => {
-    if (!userLogged || !userKey) {
-      setNoteState((current) =>
-        current.userKey === null ? current : { userKey: null, items: [] },
-      );
-      return undefined;
-    }
-
-    if (noteState.userKey === userKey) return undefined;
+    if (!userLogged || !userKey) return undefined;
 
     let active = true;
 
@@ -82,7 +107,15 @@ function NoteBtn({ initialNotes = null }) {
         if (active) {
           setNoteState({
             userKey,
-            items: normalizeNotes(data.allNotes),
+            items: (data.allNotes || []).map((item) => ({
+              clientId: String(item.noteId),
+              noteId: item.noteId,
+              note: item.note || "",
+              label: String(item.label || "General").trim() || "General",
+              color: normalizePaperColor(item.color, randomPaperColor()),
+              locked: Boolean(item.locked),
+              isDraft: false,
+            })),
           });
         }
       } catch (error) {
@@ -97,13 +130,17 @@ function NoteBtn({ initialNotes = null }) {
     return () => {
       active = false;
     };
-  }, [userKey, userLogged, showMessage, noteState.userKey]);
+  }, [userKey, userLogged, showMessage]);
 
   const createNote = useCallback(() => {
     if (!userLogged) {
       showMessage("Sign in with Google to create notes.", "error");
       return;
     }
+
+    setSearchTerm("");
+    setLabelFilter("");
+    setSortOrder("newest");
 
     const clientId = `draft-${Date.now()}-${++draftSequence.current}`;
     const color = randomPaperColor();
@@ -112,7 +149,7 @@ function NoteBtn({ initialNotes = null }) {
         clientId,
         noteId: null,
         note: "",
-        label: "General",
+        label: "Enter Label",
         color,
         locked: false,
         isDraft: true,
@@ -124,17 +161,20 @@ function NoteBtn({ initialNotes = null }) {
   const saveNote = useCallback(
     async (note, text, label) => {
       const isNew = !note.noteId;
-      const response = await fetch(apiUrl(`/note/${isNew ? "entry" : "edit"}`), {
-        method: isNew ? "POST" : "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          note: text,
-          label,
-          color: note.color,
-          ...(!isNew && { noteId: note.noteId }),
-        }),
-      });
+      const response = await fetch(
+        apiUrl(`/note/${isNew ? "entry" : "edit"}`),
+        {
+          method: isNew ? "POST" : "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            note: text,
+            label,
+            color: note.color,
+            ...(!isNew && { noteId: note.noteId }),
+          }),
+        },
+      );
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         throw new Error(data.message || "Could not save this note.");
@@ -177,16 +217,23 @@ function NoteBtn({ initialNotes = null }) {
         showMessage(data.message || "Note deleted.");
       }
 
-      updateNotes((current) => current.filter((item) => item.clientId !== note.clientId));
+      updateNotes((current) =>
+        current.filter((item) => item.clientId !== note.clientId),
+      );
     },
     [showMessage, updateNotes],
   );
 
-  const updateNote = useCallback((updatedNote) => {
-    updateNotes((current) =>
-      current.map((item) => (item.clientId === updatedNote.clientId ? updatedNote : item)),
-    );
-  }, [updateNotes]);
+  const updateNote = useCallback(
+    (updatedNote) => {
+      updateNotes((current) =>
+        current.map((item) =>
+          item.clientId === updatedNote.clientId ? updatedNote : item,
+        ),
+      );
+    },
+    [updateNotes],
+  );
 
   return (
     <>
@@ -199,9 +246,57 @@ function NoteBtn({ initialNotes = null }) {
         </button>
       </div>
 
-      <main className="notes-container" aria-label="Your notes" aria-busy={loading}>
+      {userLogged && notes.length > 0 && (
+        <section className="notes-toolbar" aria-label="Find and organize notes">
+          <label className="notes-search-field">
+            <span>Search notes</span>
+            <input
+              type="search"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.currentTarget.value)}
+              placeholder="Search text or labels"
+            />
+          </label>
+          <label className="notes-filter-field">
+            <span>Label</span>
+            <select
+              value={labelFilter}
+              onChange={(event) => setLabelFilter(event.currentTarget.value)}
+            >
+              <option value="">All labels</option>
+              {availableLabels.map((label) => (
+                <option key={label} value={label}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="notes-sort-field">
+            <span>Sort by</span>
+            <select
+              value={sortOrder}
+              onChange={(event) => setSortOrder(event.currentTarget.value)}
+            >
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="label-asc">Label A–Z</option>
+              <option value="label-desc">Label Z–A</option>
+            </select>
+          </label>
+          <p className="notes-result-count" aria-live="polite">
+            Showing {visibleNotes.length} of {notes.length}{" "}
+            {notes.length === 1 ? "note" : "notes"}
+          </p>
+        </section>
+      )}
+
+      <main
+        className="notes-container"
+        aria-label="Your notes"
+        aria-busy={loading}
+      >
         {loading && <p className="notes-loading">Loading your notes…</p>}
-        {notes.map((note) => (
+        {visibleNotes.map((note) => (
           <NoteCard
             key={note.clientId}
             note={note}
@@ -211,6 +306,11 @@ function NoteBtn({ initialNotes = null }) {
             showMessage={showMessage}
           />
         ))}
+        {!loading && notes.length > 0 && visibleNotes.length === 0 && (
+          <p className="notes-empty-filtered">
+            No notes match your search or filters.
+          </p>
+        )}
       </main>
       <MsgPopUp toast={toast} onClose={closeToast} />
     </>
@@ -222,6 +322,9 @@ function NoteCard({ note, onSave, onDelete, onUpdate, showMessage }) {
   const [draft, setDraft] = useState(note.note);
   const [labelDraft, setLabelDraft] = useState(note.label || "General");
   const [busy, setBusy] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(
+    note.isDraft ? "unsaved" : "saved",
+  );
   const [expanded, setExpanded] = useState(false);
   const [passwordMode, setPasswordMode] = useState(null);
   const [unlocked, setUnlocked] = useState(false);
@@ -232,6 +335,11 @@ function NoteCard({ note, onSave, onDelete, onUpdate, showMessage }) {
   const visibleText = note.locked ? unlockedText : note.note;
   const label = labelDraft.trim() || "General";
   const noteColor = `var(--${normalizePaperColor(note.color)})`;
+  const hasUnsavedChanges =
+    editing &&
+    (note.isDraft ||
+      draft.trim() !== visibleText ||
+      label !== (note.label || "General"));
 
   useEffect(() => {
     if (editing) editorRef.current?.focus();
@@ -265,6 +373,7 @@ function NoteCard({ note, onSave, onDelete, onUpdate, showMessage }) {
   const startEditing = () => {
     setDraft(visibleText);
     setLabelDraft(note.label || "General");
+    setSaveStatus("saved");
     setEditing(true);
   };
 
@@ -275,6 +384,7 @@ function NoteCard({ note, onSave, onDelete, onUpdate, showMessage }) {
     }
     setDraft(visibleText);
     setLabelDraft(note.label || "General");
+    setSaveStatus("saved");
     setEditing(false);
   };
 
@@ -287,12 +397,15 @@ function NoteCard({ note, onSave, onDelete, onUpdate, showMessage }) {
     }
 
     setBusy(true);
+    setSaveStatus("saving");
     try {
       await onSave(note, text, label);
       setUnlockedText(text);
       setLabelDraft(label);
       setEditing(false);
+      setSaveStatus("saved");
     } catch (error) {
+      setSaveStatus("error");
       showMessage(error.message || "Could not save this note.", "error");
     } finally {
       setBusy(false);
@@ -339,7 +452,10 @@ function NoteCard({ note, onSave, onDelete, onUpdate, showMessage }) {
     }
 
     setPasswordMode(null);
-    showMessage(data.message || (passwordMode === "lock" ? "Note locked." : "Note unlocked."));
+    showMessage(
+      data.message ||
+        (passwordMode === "lock" ? "Note locked." : "Note unlocked."),
+    );
   };
 
   const noteCard = (
@@ -355,7 +471,10 @@ function NoteCard({ note, onSave, onDelete, onUpdate, showMessage }) {
           aria-label={expanded ? "Collapse note" : "Expand note"}
           onClick={() => setExpanded((value) => !value)}
         >
-          <i className={`fas ${expanded ? "fa-compress" : "fa-expand"}`} aria-hidden="true" />
+          <i
+            className={`fas ${expanded ? "fa-compress" : "fa-expand"}`}
+            aria-hidden="true"
+          />
         </button>
 
         {editing ? (
@@ -368,7 +487,10 @@ function NoteCard({ note, onSave, onDelete, onUpdate, showMessage }) {
               onClick={save}
               disabled={busy}
             >
-              <i className={`fas ${busy ? "fa-spinner fa-spin" : "fa-check"}`} aria-hidden="true" />
+              <i
+                className={`fas ${busy ? "fa-spinner fa-spin" : "fa-check"}`}
+                aria-hidden="true"
+              />
             </button>
             <button
               type="button"
@@ -425,7 +547,10 @@ function NoteCard({ note, onSave, onDelete, onUpdate, showMessage }) {
           onClick={remove}
           disabled={busy}
         >
-          <i className={`fas ${busy ? "fa-spinner fa-spin" : "fa-trash-alt"}`} aria-hidden="true" />
+          <i
+            className={`fas ${busy ? "fa-spinner fa-spin" : "fa-trash-alt"}`}
+            aria-hidden="true"
+          />
         </button>
       </div>
 
@@ -438,12 +563,17 @@ function NoteCard({ note, onSave, onDelete, onUpdate, showMessage }) {
             value={labelDraft}
             maxLength={24}
             placeholder="e.g. Work or Personal"
-            onChange={(event) => setLabelDraft(event.currentTarget.value)}
+            onChange={(event) => {
+              setLabelDraft(event.currentTarget.value);
+              setSaveStatus("saved");
+            }}
             disabled={busy}
           />
         </div>
       ) : (
-        <span className="note-label-tag" title={label}>{label}</span>
+        <span className="note-label-tag" title={label}>
+          {label}
+        </span>
       )}
 
       {isProtected ? (
@@ -465,9 +595,13 @@ function NoteCard({ note, onSave, onDelete, onUpdate, showMessage }) {
             maxLength={5000}
             placeholder="Write something worth remembering…"
             aria-label="Note text"
-            onChange={(event) => setDraft(event.currentTarget.value)}
+            onChange={(event) => {
+              setDraft(event.currentTarget.value);
+              setSaveStatus("saved");
+            }}
             onKeyDown={(event) => {
-              if ((event.metaKey || event.ctrlKey) && event.key === "Enter") save();
+              if ((event.metaKey || event.ctrlKey) && event.key === "Enter")
+                save();
               if (event.key === "Escape") {
                 event.stopPropagation();
                 cancelEditing();
@@ -480,6 +614,18 @@ function NoteCard({ note, onSave, onDelete, onUpdate, showMessage }) {
       ) : (
         <div className="note-content">{visibleText}</div>
       )}
+
+      <span
+        className={`note-save-status note-save-status-${busy ? "saving" : hasUnsavedChanges ? "unsaved" : saveStatus}`}
+      >
+        {busy || saveStatus === "saving"
+          ? "Saving…"
+          : saveStatus === "error"
+            ? "Save failed"
+            : hasUnsavedChanges
+              ? "Unsaved changes"
+              : "Saved"}
+      </span>
 
       {passwordMode && (
         <PasswordPopUp
