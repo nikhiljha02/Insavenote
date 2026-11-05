@@ -8,6 +8,10 @@
     {
       "source": "/note/(.*)",
       "destination": "https://insavenote.onrender.com/note/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
