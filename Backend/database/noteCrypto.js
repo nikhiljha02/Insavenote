@@ -1,4 +1,3 @@
-import "dotenv/config";
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 
 const VERSION_PREFIX = "enc:v1:";

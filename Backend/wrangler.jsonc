@@ -1,0 +1,27 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "savenotes-api",
+	"account_id": "bdb21cbf10c428d044595443102a57db",
+	"main": "worker.js",
+	"compatibility_date": "2026-11-20",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"vars": {
+  "NODE_ENV": "production",
+  "FRONTEND_LIVE_URL": "https://insavenote.nikhiljha.in",
+  "GOOGLE_CLIENT_ID": "553661110668-5pojt9n69gf3b03qmooaposmfc7l3959.apps.googleusercontent.com"
+},
+	"hyperdrive": [
+		{
+			"binding": "HYPERDRIVE",
+			"id": "aa4c060cc8e248ed8592b1ffb6494c59"
+		}
+	],
+	"kv_namespaces": [
+		{
+			"binding": "SESSIONS",
+			"id": "81a6c3054b374fb99cb7a4d3871a61db"
+		}
+	]
+}

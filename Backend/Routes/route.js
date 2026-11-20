@@ -1,5 +1,5 @@
 import { Router } from "express";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { OAuth2Client } from "google-auth-library";
 import { query } from "../database/db.js";
 

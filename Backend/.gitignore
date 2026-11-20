@@ -1,4 +1,17 @@
+
 node_modules/
+
+# Environment secrets
 .env
 .env.*
 !.env.example
+
+# Cloudflare local files
+.wrangler/
+
+# Database certificates
+*.pem
+*.key
+
+# Backups
+Backend-backup/
