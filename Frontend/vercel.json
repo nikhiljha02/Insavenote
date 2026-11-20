@@ -7,7 +7,7 @@
     },
     {
       "source": "/note/(.*)",
-      "destination": "https://savenotes-api.nikhil324008jha.workers.dev/api/$1"
+      "destination": "https://savenotes-api.nikhil324008jha.workers.dev/note/$1"
     },
     {
       "source": "/(.*)",
