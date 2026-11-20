@@ -3,11 +3,11 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://insavenote.onrender.com/api/$1"
+      "destination": "https://savenotes-api.nikhil324008jha.workers.dev/api/$1"
     },
     {
       "source": "/note/(.*)",
-      "destination": "https://insavenote.onrender.com/note/$1"
+      "destination": "https://savenotes-api.nikhil324008jha.workers.dev/api/$1"
     },
     {
       "source": "/(.*)",
